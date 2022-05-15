@@ -1,9 +1,8 @@
 from mne.io import read_raw_bdf
-from mne.preprocessing import (ICA, create_eog_epochs, create_ecg_epochs, corrmap)
+from mne.preprocessing import ICA
 import matplotlib.pyplot as plt
 import numpy as np
 
-# path='./sub-001_eeg_sub-001_task-med1breath_eeg.bdf'
 path = '/Users/carme/Desktop/ML for physiological time series/Project/EEG/sub-001_eeg_sub-001_task-med1breath_eeg.bdf'
 raw_eeg = read_raw_bdf(path,preload=True)
 
@@ -11,6 +10,9 @@ raw_eeg = read_raw_bdf(path,preload=True)
 #    channel_i = raw_eeg[raw_eeg.ch_names[i]]
 #    plt.plot(channel_i[1], np.squeeze(channel_i[0]))
 #    plt.show()
+
+#We will use only 60 seconds of the signal - in the paper they used 30sec, however, when filtering the data edge artifacts may rise, therefore, we perform the preprocessing on longer data period
+raw_eeg.crop(tmin=60, tmax=120)
 
 channel_i = raw_eeg[raw_eeg.ch_names[38]]
 plt.plot(channel_i[1], np.squeeze(channel_i[0]))
@@ -24,8 +26,6 @@ channels_to_filter = np.arange(0,72)
 
 Filtered_eeg = raw_eeg.filter(l_freq=1,h_freq=45,picks=channels_to_filter,filter_length='auto',method='iir')
 
-#Filtered_eeg = raw_eeg.filter(l_freq=1,h_freq=45,filter_length='auto',method='iir')
-
 channel_i_filt = Filtered_eeg[Filtered_eeg.ch_names[38]]
 plt.plot(channel_i_filt[1], np.squeeze(channel_i_filt[0]))
 plt.show()
@@ -38,8 +38,6 @@ plt.show()
 
 #50Hz notch filter (India's power line frequency)
 Filtered_eeg_notch = Filtered_eeg.notch_filter(np.arange(50, 251, 50),method='fir',picks=channels_to_filter,phase='zero-double')
-
-#Filtered_eeg_notch = Filtered_eeg.notch_filter(np.arange(50, 251, 50),method='fir',phase='zero-double')
 
 channel_i_notch = Filtered_eeg_notch[Filtered_eeg_notch.ch_names[38]]
 
@@ -72,19 +70,18 @@ ica.exclude = []
 eog_indices, eog_scores = ica.find_bads_eog(Filtered_eeg_notch,ch_name=EOG_ch_names)
 ica.exclude = eog_indices
 
-# barplot of ICA component "EOG match" scores
+#barplot of ICA component "EOG match" scores
 ica.plot_scores(eog_scores)
 
 # plot ICs applied to raw data, with EOG matches highlighted
 ica.plot_sources(Filtered_eeg_notch, show_scrollbars=False)
-
 
 ica.exclude = []
 # find which ICs match the EOG pattern
 ecg_indices, ecg_scores = ica.find_bads_ecg(Filtered_eeg_notch,ch_name='EXG7')
 ica.exclude = ecg_indices
 
-# barplot of ICA component "EOG match" scores
+#barplot of ICA component "EOG match" scores
 ica.plot_scores(ecg_scores)
 
 # plot ICs applied to raw data, with ECG matches highlighted
