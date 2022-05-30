@@ -1,8 +1,10 @@
+import mne.time_frequency.tfr
 from mne.io import read_raw_bdf
 from mne.preprocessing import ICA
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+
 
 #path = '/Users/carme/Desktop/ML for physiological time series/Project/EEG/sub-001_eeg_sub-001_task-med1breath_eeg.bdf'
 path = '/Users/carme/Desktop/ML for physiological time series/Project/EEG'
@@ -35,7 +37,7 @@ for file in os.listdir(path):
 
     Filtered_eeg = raw_eeg.filter(l_freq=1,h_freq=45,picks=channels_to_filter,filter_length='auto',method='iir')
 
-    channel_i_filt = Filtered_eeg[Filtered_eeg.ch_names[38]]
+    channel_i_filt = Filtered_eeg[Filtered_eeg.ch_names[37]]
     plt.plot(channel_i_filt[1], np.squeeze(channel_i_filt[0]))
     plt.show()
 
@@ -48,7 +50,7 @@ for file in os.listdir(path):
     #50Hz notch filter (India's power line frequency)
     Filtered_eeg_notch = Filtered_eeg.notch_filter(np.arange(50, 251, 50),method='fir',picks=channels_to_filter,phase='zero-double')
 
-    channel_i_notch = Filtered_eeg_notch[Filtered_eeg_notch.ch_names[38]]
+    channel_i_notch = Filtered_eeg_notch[Filtered_eeg_notch.ch_names[37]]
 
     plt.plot(channel_i_filt[1], np.squeeze(channel_i_filt[0]),label='Band pass filtered')
     plt.plot(channel_i_notch[1], np.squeeze(channel_i_notch[0]),label='Band pass and notch filtered')
@@ -97,9 +99,24 @@ for file in os.listdir(path):
     ica.plot_sources(Filtered_eeg_notch, show_scrollbars=False)
 
     Filtered_eeg_notch_ICA = ica.apply(Filtered_eeg_notch)
-    channel_i_i = Filtered_eeg_notch[Filtered_eeg_notch.ch_names[38]]
+    channel_i_i = Filtered_eeg_notch[Filtered_eeg_notch.ch_names[37]]
     plt.plot(channel_i_i[1], np.squeeze(channel_i_i[0]))
-    plt.xlim(0, 5)
+    #plt.xlim(0, 5)
     plt.show()
 
-    np.save(f,Filtered_eeg_notch_ICA)
+    # Perform a CWT on Fz electrode
+    Fz_signal = Filtered_eeg_notch_ICA[Filtered_eeg_notch_ICA.ch_names[37]][0]
+    #t = Filtered_eeg_notch[Filtered_eeg_notch.ch_names[37]][1]
+
+    freq_range = np.arange(1,46)
+    Ws = mne.time_frequency.tfr.morlet(1024, freq_range)
+    Fz_tfr = np.squeeze(mne.time_frequency.tfr.cwt(Fz_signal, Ws))
+
+
+    plt.plot(Fz_tfr[:, 0:44])
+    plt.show()
+
+    b = []
+    window = 4
+    for i in range(0, len(Fz_tfr) - window, 1):
+        b[i] = np.amax(Fz_tfr[i:i + window])
