@@ -117,13 +117,15 @@ for file in os.listdir(path):
     plt.plot(Fz_tfr[:, 0:44])
     plt.show()
 
+    matrix = np.zeros((45,1))
+    for i in range(0,45):
+        max_array = np.array([np.amax(Fz_tfr[:,i*4000:i*4000+4000], axis=1)]).T
+        if i==0:
+            matrix = max_array
+        else:
+            matrix = np.append(matrix, max_array, axis=1)
 
-    for i in range(0,44):
-        max_array = np.array([np.amax(Fz_tfr[:,i*4000:i*4000+4000], axis=1)])
-        max_array.T
-        max_array = np.append(max_array, max_array)
-
-    max_array
+    matrix
 
 
 
