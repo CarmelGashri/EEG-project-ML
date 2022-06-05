@@ -6,6 +6,7 @@ import numpy as np
 import os
 
 
+
 #path = '/Users/carme/Desktop/ML for physiological time series/Project/EEG/sub-001_eeg_sub-001_task-med1breath_eeg.bdf'
 path = '/Users/carme/Desktop/ML for physiological time series/Project/EEG'
 
@@ -110,13 +111,20 @@ for file in os.listdir(path):
 
     freq_range = np.arange(1,46)
     Ws = mne.time_frequency.tfr.morlet(1024, freq_range)
-    Fz_tfr = np.squeeze(mne.time_frequency.tfr.cwt(Fz_signal, Ws))
+    Fz_tfr = abs(np.squeeze(mne.time_frequency.tfr.cwt(Fz_signal, Ws)))
 
 
     plt.plot(Fz_tfr[:, 0:44])
     plt.show()
 
-    b = []
-    window = 4
-    for i in range(0, len(Fz_tfr) - window, 1):
-        b[i] = np.amax(Fz_tfr[i:i + window])
+
+    for i in range(0,44):
+        max_array = np.array([np.amax(Fz_tfr[:,i*4000:i*4000+4000], axis=1)])
+        max_array.T
+        max_array = np.append(max_array, max_array)
+
+    max_array
+
+
+
+
