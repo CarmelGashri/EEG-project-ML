@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
+
+
 Participants = pd.read_csv('participants.tsv', sep='\t')
 
 Participants.info()
@@ -21,9 +23,19 @@ print(Gender_catagorical)
 
 #Distribution of age and gender:
 Participants_Age_no_na['gender_catagorical'] = Gender_catagorical.tolist()
-xlbl = ['Age [$years$]','Gender [$N.U$]']
-axarr = Participants_Age_no_na.hist(bins=10, figsize=(20, 15))
-for idx, ax in enumerate(axarr.flatten()):
-    ax.set_xlabel(xlbl[idx])
-    ax.set_ylabel("Count")
+Participants_Age = Participants_Age_no_na['age']
+Participants_Age.hist(bins=10)
+plt.title('Age distribution histogram')
+plt.xlabel('Age [$years$]')
+plt.ylabel('Count')
 plt.show()
+
+#Show the percentages of females and males using pie chart:
+Males = np.count_nonzero(Gender_catagorical)
+Females = len(Participants_Age_no_na)-Males
+plt.pie([Males,Females], labels=['Males','Females'], colors = ['steelblue', 'salmon'], autopct='%1.1f%%')
+plt.title('Gender distribution')
+plt.show()
+
+#After all the matrices were saved perform train-test split, X should be the data (the matrices) and Y should be the labels
+X = np.load('/Users/carme/Desktop/ML for physiological time series/Project/EEG/sub-001_eeg_sub-001_task-med1breath_eeg.bdf.npy')

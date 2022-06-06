@@ -7,6 +7,7 @@ import os
 
 
 
+
 #path = '/Users/carme/Desktop/ML for physiological time series/Project/EEG/sub-001_eeg_sub-001_task-med1breath_eeg.bdf'
 path = '/Users/carme/Desktop/ML for physiological time series/Project/EEG'
 
@@ -26,8 +27,11 @@ for file in os.listdir(path):
     #Change the reference of the signal to be the average reference across EEG electrodes
     raw_eeg.set_eeg_reference('average', projection=True, ch_type='eeg')
 
-    channel_i = raw_eeg[raw_eeg.ch_names[38]]
+    channel_i = raw_eeg[raw_eeg.ch_names[37]]
     plt.plot(channel_i[1], np.squeeze(channel_i[0]))
+    plt.title('Fz electrode before pre-processing')
+    plt.xlabel('Time [$Sec$]')
+    plt.ylabel('Amplitude ['r'$\mu$V]')
     plt.show()
 
     channels_to_filter = np.arange(0,72)
@@ -40,12 +44,9 @@ for file in os.listdir(path):
 
     channel_i_filt = Filtered_eeg[Filtered_eeg.ch_names[37]]
     plt.plot(channel_i_filt[1], np.squeeze(channel_i_filt[0]))
-    plt.show()
-
-    plt.plot(channel_i[1], np.squeeze(channel_i[0]),label='raw')
-    plt.plot(channel_i_filt[1], np.squeeze(channel_i_filt[0]),label='Band pass filtered')
-    plt.xlim(0,1)
-    plt.legend(bbox_to_anchor=(1.124, 0.4))
+    plt.title('Fz electrode after band-pass filtering')
+    plt.xlabel('Time [$Sec$]')
+    plt.ylabel('Amplitude ['r'$\mu$V]')
     plt.show()
 
     #50Hz notch filter (India's power line frequency)
@@ -55,8 +56,11 @@ for file in os.listdir(path):
 
     plt.plot(channel_i_filt[1], np.squeeze(channel_i_filt[0]),label='Band pass filtered')
     plt.plot(channel_i_notch[1], np.squeeze(channel_i_notch[0]),label='Band pass and notch filtered')
-    plt.xlim(0,10)
+    #plt.xlim(0,10)
     plt.legend(bbox_to_anchor=(1.124, 0.4))
+    plt.title('Fz electrode after filtering')
+    plt.xlabel('Time [$Sec$]')
+    plt.ylabel('Amplitude ['r'$\mu$V]')
     plt.show()
 
     #EOG + ECG artifacts removal
@@ -102,7 +106,9 @@ for file in os.listdir(path):
     Filtered_eeg_notch_ICA = ica.apply(Filtered_eeg_notch)
     channel_i_i = Filtered_eeg_notch[Filtered_eeg_notch.ch_names[37]]
     plt.plot(channel_i_i[1], np.squeeze(channel_i_i[0]))
-    #plt.xlim(0, 5)
+    plt.title('Fz electrode after filtering and ICA - EOG and ECG rejection')
+    plt.xlabel('Time [$Sec$]')
+    plt.ylabel('Amplitude ['r'$\mu$V]')
     plt.show()
 
     # Perform a CWT on Fz electrode
@@ -114,9 +120,6 @@ for file in os.listdir(path):
     Fz_tfr = abs(np.squeeze(mne.time_frequency.tfr.cwt(Fz_signal, Ws)))
 
 
-    plt.plot(Fz_tfr[:, 0:44])
-    plt.show()
-
     matrix = np.zeros((45,1))
     for i in range(0,45):
         max_array = np.array([np.amax(Fz_tfr[:,i*4000:i*4000+4000], axis=1)]).T
@@ -125,8 +128,17 @@ for file in os.listdir(path):
         else:
             matrix = np.append(matrix, max_array, axis=1)
 
-    matrix
 
+    plt.imshow(matrix, 'gray')
+    plt.title('Grayscale image after performing CWT')
+    plt.xlabel('Scale')
+    plt.ylabel('Frequency [Hz]')
+    plt.show()
+
+
+    np.save(f,matrix)
+
+#After all the matrices were saved perform train-test split, X should be the data (the matrices) and Y should be the labels
 
 
 
